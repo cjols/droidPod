@@ -13,7 +13,7 @@ import com.google.android.exoplayer2.util.Util;
 
 public class PlayerActivity extends AppCompatActivity {
 
-    private PlaybackStateListener playbackStateListener;
+//    private PlaybackStateListener playbackStateListener;
     private static final String TAG = PlayerActivity.class.getName();
 
     private PlayerView playerView;
@@ -27,9 +27,9 @@ public class PlayerActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_player);
 
-        playerView = findViewById(R.id.exo_playback_control_view);
+        playerView = findViewById(R.id.audio_view);
 
-        playbackStateListener = new PlaybackStateListener();
+//        playbackStateListener = new PlaybackStateListener();
     }
 
     @Override
@@ -43,7 +43,7 @@ public class PlayerActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-        hideSystemUi();
+//        hideSystemUi();
         if ((Util.SDK_INT <= 23 || player == null)) {
             initializePlayer();
         }
@@ -84,7 +84,7 @@ public class PlayerActivity extends AppCompatActivity {
 
         player.setPlayWhenReady(playWhenReady);
         player.seekTo(currentWindow, playbackPosition);
-        player.addListener(playbackStateListener);
+//        player.addListener(playbackStateListener);
         player.prepare();
     }
 
@@ -93,9 +93,19 @@ public class PlayerActivity extends AppCompatActivity {
             playbackPosition = player.getCurrentPosition();
             currentWindow = player.getCurrentWindowIndex();
             playWhenReady = player.getPlayWhenReady();
-            player.removeListener(playbackStateListener);
+//            player.removeListener(playbackStateListener);
             player.release();
             player = null;
         }
     }
+
+//    @SuppressLint("InlinedApi")
+//    private void hideSystemUi() {
+//        playerView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE
+//                | View.SYSTEM_UI_FLAG_FULLSCREEN
+//                | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+//                | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+//                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+//                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+//    }
 }
