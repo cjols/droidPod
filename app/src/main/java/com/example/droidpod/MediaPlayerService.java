@@ -2,17 +2,94 @@ package com.example.droidpod;
 
 import android.app.Service;
 import android.content.Intent;
+import android.media.AudioAttributes;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Binder;
 import android.os.IBinder;
 
+import java.io.IOException;
+
+/**
+ * Service to control MediaPlayer object
+ */
 public class MediaPlayerService extends Service implements MediaPlayer.OnCompletionListener,
         MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener, MediaPlayer.OnSeekCompleteListener,
         MediaPlayer.OnInfoListener, MediaPlayer.OnBufferingUpdateListener,
 
         AudioManager.OnAudioFocusChangeListener {
 
+    private MediaPlayer mediaPlayer;
+    private String mediaFile;
+    private int resumePosition;
+
+    /**
+     * Initialize the MediaPlayer object
+     */
+    private void initMediaPlayer() {
+        mediaPlayer = new MediaPlayer();
+
+        // event listeners
+        mediaPlayer.setOnCompletionListener(this);
+        mediaPlayer.setOnErrorListener(this);
+        mediaPlayer.setOnPreparedListener(this);
+        mediaPlayer.setOnBufferingUpdateListener(this);
+        mediaPlayer.setOnSeekCompleteListener(this);
+        mediaPlayer.setOnInfoListener(this);
+
+        mediaPlayer.reset();
+
+        mediaPlayer.setAudioAttributes(new AudioAttributes.Builder()
+                .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                .build());
+        try {
+            mediaPlayer.setDataSource(mediaFile);
+        } catch (IOException e) {
+            e.printStackTrace();
+            stopSelf();
+        }
+        mediaPlayer.prepareAsync();
+    }
+
+    /**
+     * Start media playback
+     */
+    private void playMedia() {
+        if (!mediaPlayer.isPlaying()) {
+            mediaPlayer.start();
+        }
+    }
+
+    /**
+     * Stop media playback
+     */
+    private void stopMedia() {
+        if (mediaPlayer == null)
+            return;
+        if (mediaPlayer.isPlaying()) {
+            mediaPlayer.stop();
+        }
+    }
+
+    /**
+     * Pause media playback
+     */
+    private void pauseMedia() {
+        if (mediaPlayer.isPlaying()) {
+            mediaPlayer.pause();
+            resumePosition = mediaPlayer.getCurrentPosition();
+        }
+    }
+
+    /**
+     * Resume media playback
+     */
+    private void resumeMedia() {
+        if (!mediaPlayer.isPlaying()) {
+            mediaPlayer.seekTo(resumePosition);
+            mediaPlayer.start();
+        }
+    }
 
     // Binder given to clients
     private final IBinder iBinder = new LocalBinder();
