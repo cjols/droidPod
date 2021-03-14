@@ -1,10 +1,13 @@
 package com.example.droidpod;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.os.Bundle;
 
+import androidx.appcompat.app.AppCompatActivity;
+
 public class MainActivity extends AppCompatActivity {
+
+    private MediaPlayerService player;
+    boolean serviceBound = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

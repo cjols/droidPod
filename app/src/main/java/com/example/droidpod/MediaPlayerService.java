@@ -221,6 +221,47 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     }
 
     /**
+     * Invoked when activity sends start request
+     * Passes audio file to the service through getExtra()
+     * @param intent intent
+     * @param flags flags
+     * @param startId start ID
+     * @return super.onStartCommand()
+     */
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        try {
+            mediaFile = intent.getExtras().getString("media");
+        } catch (NullPointerException e) {
+            stopSelf();
+        }
+
+        if (!requestAudioFocus()) {
+            stopSelf();
+        }
+
+        if (mediaFile != null && !mediaFile.equals("")) {
+            initMediaPlayer();
+        }
+
+        return super.onStartCommand(intent, flags, startId);
+    }
+
+    /**
+     * Invoked when service is destroyed.
+     * Stops media, releases the media player, and removes audio focus.
+     */
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (mediaPlayer != null) {
+            stopMedia();
+            mediaPlayer.release();
+        }
+        removeAudioFocus();
+    }
+
+    /**
      * Requests audio focus
      * @return true if request has been granted
      */
@@ -244,5 +285,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             return MediaPlayerService.this;
         }
     }
+
 
 }
