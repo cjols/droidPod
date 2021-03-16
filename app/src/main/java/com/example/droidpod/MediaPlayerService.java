@@ -121,7 +121,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     /**
      * Stops media and service
      * Invoked upon completion of media playback
-     * @param mp
+     * @param mp media player
      */
     @Override
     public void onCompletion(MediaPlayer mp) {
