@@ -15,6 +15,7 @@ import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 /**
  * Service to control MediaPlayer object
@@ -30,6 +31,12 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     private AudioManager audioManager;
     private int resumePosition;
 
+    // audio files
+    private ArrayList<Audio> audioList;
+    private int audioIndex = -1;
+    private Audio activeAudio;
+
+    // phone vars
     private boolean onGoingCall = false;
     private PhoneStateListener phoneStateListener;
     private TelephonyManager telephonyManager;

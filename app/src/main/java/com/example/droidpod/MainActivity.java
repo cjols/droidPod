@@ -24,26 +24,34 @@ public class MainActivity extends AppCompatActivity {
 
     ArrayList<Audio> audioList;
 
+    public static final String Broadcast_PLAY_NEW_AUDIO = "com.valdioveliu.valdio.audioplayer.PlayNewAudio";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         loadAudio();
-        playAudio(audioList.get(0).getData());
+//        playAudio(audioList.get(0).getData());
 
         //test audio
 //        playAudio("https://upload.wikimedia.org/wikipedia/commons/6/6c/Grieg_Lyric_Pieces_Kobold.ogg");
     }
 
-    private void playAudio(String media) {
+    private void playAudio(int audioIndex) {
+        StorageService storage = new StorageService(getApplicationContext());
         if (!serviceBound) {
+            storage.storeAudio(audioList);
+            storage.storeAudioIndex(audioIndex);
+
             Intent playerIntent = new Intent(this, MediaPlayerService.class);
-            playerIntent.putExtra("media", media);
             startService(playerIntent);
             bindService(playerIntent, serviceConnection, Context.BIND_AUTO_CREATE);
         } else {
+            storage.storeAudioIndex(audioIndex);
             //Service is active
+            Intent broadcastIntent = new Intent(Broadcast_PLAY_NEW_AUDIO);
+            sendBroadcast(broadcastIntent);
         }
     }
 
