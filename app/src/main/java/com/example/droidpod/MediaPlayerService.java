@@ -5,11 +5,17 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.media.AudioAttributes;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Binder;
 import android.os.IBinder;
+import android.os.RemoteException;
+import android.support.v4.media.MediaMetadataCompat;
+import android.support.v4.media.session.MediaControllerCompat;
+import android.support.v4.media.session.MediaSessionCompat;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -23,7 +29,6 @@ import java.util.ArrayList;
 public class MediaPlayerService extends Service implements MediaPlayer.OnCompletionListener,
         MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener, MediaPlayer.OnSeekCompleteListener,
         MediaPlayer.OnInfoListener, MediaPlayer.OnBufferingUpdateListener,
-
         AudioManager.OnAudioFocusChangeListener {
 
     private MediaPlayer mediaPlayer;
@@ -40,6 +45,20 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     private boolean onGoingCall = false;
     private PhoneStateListener phoneStateListener;
     private TelephonyManager telephonyManager;
+
+    public static final String ACTION_PLAY = "com.valdioveliu.valdio.audioplayer.ACTION_PLAY";
+    public static final String ACTION_PAUSE = "com.valdioveliu.valdio.audioplayer.ACTION_PAUSE";
+    public static final String ACTION_PREVIOUS = "com.valdioveliu.valdio.audioplayer.ACTION_PREVIOUS";
+    public static final String ACTION_NEXT = "com.valdioveliu.valdio.audioplayer.ACTION_NEXT";
+    public static final String ACTION_STOP = "com.valdioveliu.valdio.audioplayer.ACTION_STOP";
+
+    //MediaSession
+    private MediaSessionManager mediaSessionManager;
+    private MediaSessionCompat mediaSession;
+    private MediaControllerCompat.TransportControls transportControls;
+
+    //AudioPlayer notification ID
+    private static final int NOTIFICATION_ID = 101;
 
     /**
      * Initialize the MediaPlayer object
@@ -67,6 +86,26 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             stopSelf();
         }
         mediaPlayer.prepareAsync();
+    }
+
+    /**
+     *
+     */
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        // Perform one-time setup procedures
+
+        // Manage incoming phone calls during playback.
+        // Pause MediaPlayer on incoming call,
+        // Resume on hangup.
+        callStateListener();
+
+        //ACTION_AUDIO_BECOMING_NOISY -- change in audio outputs -- BroadcastReceiver
+        registerBecomingNoisyReceiver();
+
+        //Listen for new Audio to play -- BroadcastReceiver
+        register_playNewAudio();
     }
 
     /**
@@ -107,6 +146,129 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             mediaPlayer.seekTo(resumePosition);
             mediaPlayer.start();
         }
+    }
+
+    /**
+     *
+     */
+    private BroadcastReceiver playNewAudio = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+            //Get the new media index form SharedPreferences
+            audioIndex = new StorageService(getApplicationContext()).loadAudioIndex();
+            if (audioIndex != -1 && audioIndex < audioList.size()) {
+                //index is in a valid range
+                activeAudio = audioList.get(audioIndex);
+            } else {
+                stopSelf();
+            }
+
+            //A PLAY_NEW_AUDIO action received
+            //reset mediaPlayer to play the new Audio
+            stopMedia();
+            mediaPlayer.reset();
+            initMediaPlayer();
+            updateMetaData();
+            buildNotification(PlaybackStatus.PLAYING);
+        }
+    };
+
+    /**
+     *
+     */
+    private void register_playNewAudio() {
+        //Register playNewMedia receiver
+        IntentFilter filter = new IntentFilter(MainActivity.Broadcast_PLAY_NEW_AUDIO);
+        registerReceiver(playNewAudio, filter);
+    }
+
+    /**
+     *
+     * @throws RemoteException
+     */
+    private void initMediaSession() throws RemoteException {
+        if (mediaSessionManager != null) return; //mediaSessionManager exists
+
+        mediaSessionManager = (MediaSessionManager) getSystemService(Context.MEDIA_SESSION_SERVICE);
+
+        // Create a new MediaSession
+        mediaSession = new MediaSessionCompat(getApplicationContext(), "AudioPlayer");
+
+        //Get MediaSessions transport controls
+        transportControls = mediaSession.getController().getTransportControls();
+
+        //set MediaSession -> ready to receive media commands
+        mediaSession.setActive(true);
+
+        //indicate that the MediaSession handles transport control commands
+        // through its MediaSessionCompat.Callback.
+        mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
+
+        //Set mediaSession's MetaData
+        updateMetaData();
+
+        // Attach Callback to receive MediaSession updates
+        mediaSession.setCallback(new MediaSessionCompat.Callback() {
+
+            @Override
+            public void onPlay() {
+                super.onPlay();
+                resumeMedia();
+                buildNotification(PlaybackStatus.PLAYING);
+            }
+
+            @Override
+            public void onPause() {
+                super.onPause();
+                pauseMedia();
+                buildNotification(PlaybackStatus.PAUSED);
+            }
+
+            @Override
+            public void onSkipToNext() {
+                super.onSkipToNext();
+                skipToNext();
+                updateMetaData();
+                buildNotification(PlaybackStatus.PLAYING);
+            }
+
+            @Override
+            public void onSkipToPrevious() {
+                super.onSkipToPrevious();
+                skipToPrevious();
+                updateMetaData();
+                buildNotification(PlaybackStatus.PLAYING);
+            }
+
+            @Override
+            public void onStop() {
+                super.onStop();
+                removeNotification();
+                //Stop the service
+                stopSelf();
+            }
+
+            @Override
+            public void onSeekTo(long position) {
+                super.onSeekTo(position);
+            }
+        });
+    }
+
+    /**
+     *
+     */
+    private void updateMetaData() {
+        Bitmap albumArt = BitmapFactory.decodeResource(getResources(),
+                R.drawable.image); //replace with medias albumArt
+        // Update the current metadata
+        mediaSession.setMetadata(new MediaMetadataCompat.Builder()
+                .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, albumArt)
+                .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, activeAudio.getArtist())
+                .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, activeAudio.getAlbum())
+                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, activeAudio.getTitle())
+                .build());
     }
 
     // Binder given to clients
@@ -274,6 +436,18 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             mediaPlayer.release();
         }
         removeAudioFocus();
+        if (phoneStateListener != null) {
+            telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_NONE);
+        }
+
+        //TODO removeNotification();
+
+        //unregister BroadcastReceivers
+        unregisterReceiver(becomingNoisyReceiver);
+        unregisterReceiver(playNewAudio);
+
+        //clear cached playlist
+        new StorageService(getApplicationContext()).clearCachedAudioPlaylist();
     }
 
     /**
