@@ -257,7 +257,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     }
 
     /**
-     *
+     * updates shown metadata to that of the currently playing track
      */
     private void updateMetaData() {
         Bitmap albumArt = BitmapFactory.decodeResource(getResources(),
@@ -269,6 +269,42 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                 .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, activeAudio.getAlbum())
                 .putString(MediaMetadataCompat.METADATA_KEY_TITLE, activeAudio.getTitle())
                 .build());
+    }
+
+    /**
+     * Skips current track, and goes onto next in audio list
+     */
+    private void skipToNext() {
+        if (audioIndex == audioList.size() - 1) {
+            audioIndex = 0;
+            activeAudio = audioList.get(audioIndex);
+        } else {
+            activeAudio = audioList.get(++audioIndex);
+        }
+
+        new StorageService(getApplicationContext()).storeAudioIndex(audioIndex);
+        stopMedia();
+        mediaPlayer.reset();
+        initMediaPlayer();
+    }
+
+    /**
+     * Goes back to previous track from current track
+     */
+    private void skipToPrevious() {
+        // checks if current track is first in playlist
+        //TODO check track time to restart track
+        if (audioIndex == 0) {
+            audioIndex = audioList.size() - 1;
+            activeAudio = audioList.get(audioIndex);
+        } else {
+            activeAudio = audioList.get(--audioIndex);
+        }
+
+        new StorageService(getApplicationContext()).storeAudioIndex(audioIndex);
+        stopMedia();
+        mediaPlayer.reset();
+        initMediaPlayer();
     }
 
     // Binder given to clients
