@@ -1,5 +1,7 @@
 package com.example.droidpod;
 
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -10,6 +12,7 @@ import android.graphics.BitmapFactory;
 import android.media.AudioAttributes;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.media.session.MediaSessionManager;
 import android.os.Binder;
 import android.os.IBinder;
 import android.os.RemoteException;
@@ -19,6 +22,8 @@ import android.support.v4.media.session.MediaSessionCompat;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+
+import androidx.core.app.NotificationCompat;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -89,13 +94,12 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     }
 
     /**
-     *
+     * Invoked when service is created.
+     * Init listeners for calls, output changes, and music to play.
      */
     @Override
     public void onCreate() {
         super.onCreate();
-        // Perform one-time setup procedures
-
         // Manage incoming phone calls during playback.
         // Pause MediaPlayer on incoming call,
         // Resume on hangup.
@@ -106,6 +110,32 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
 
         //Listen for new Audio to play -- BroadcastReceiver
         register_playNewAudio();
+    }
+
+    /**
+     * Invoked when service is destroyed.
+     * Stops media, releases the media player, and removes audio focus.
+     */
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (mediaPlayer != null) {
+            stopMedia();
+            mediaPlayer.release();
+        }
+        removeAudioFocus();
+        if (phoneStateListener != null) {
+            telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_NONE);
+        }
+
+        removeNotification();
+
+        //unregister BroadcastReceivers
+        unregisterReceiver(becomingNoisyReceiver);
+        unregisterReceiver(playNewAudio);
+
+        //clear cached playlist
+        new StorageService(getApplicationContext()).clearCachedAudioPlaylist();
     }
 
     /**
@@ -149,12 +179,11 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     }
 
     /**
-     *
+     * Assign active audio track and initialize new media player
      */
     private BroadcastReceiver playNewAudio = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-
             //Get the new media index form SharedPreferences
             audioIndex = new StorageService(getApplicationContext()).loadAudioIndex();
             if (audioIndex != -1 && audioIndex < audioList.size()) {
@@ -175,16 +204,15 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     };
 
     /**
-     *
+     * register playNewAudio receiver
      */
     private void register_playNewAudio() {
-        //Register playNewMedia receiver
         IntentFilter filter = new IntentFilter(MainActivity.Broadcast_PLAY_NEW_AUDIO);
         registerReceiver(playNewAudio, filter);
     }
 
     /**
-     *
+     *  Initializes the media session
      * @throws RemoteException
      */
     private void initMediaSession() throws RemoteException {
@@ -307,14 +335,103 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         initMediaPlayer();
     }
 
+    /**
+     * Builds notification for current play track
+     * @param playbackStatus
+     */
+    private void buildNotification(PlaybackStatus playbackStatus) {
+        int notificationAction = android.R.drawable.ic_media_pause;
+        PendingIntent play_pauseAction = null;
+
+        // Build notification based on MediaPlayer state
+        if (playbackStatus == PlaybackStatus.PLAYING) {
+            notificationAction = android.R.drawable.ic_media_pause;
+            play_pauseAction = playbackAction(1);
+        } else if (playbackStatus == PlaybackStatus.PAUSED) {
+            notificationAction = android.R.drawable.ic_media_play;
+            play_pauseAction = playbackAction(0);
+        }
+
+        Bitmap largeIcon = BitmapFactory.decodeResource(getResources(),
+                R.drawable.image); //TODO replace image.xml
+
+        // Create notification
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat
+                .Builder(this, "my_channel_id_01").setShowWhen(false)
+                .setStyle(new androidx.media.app.NotificationCompat.MediaStyle()
+                        .setMediaSession(mediaSession.getSessionToken())
+                .setShowActionsInCompactView(0, 1, 2)).setColor(getResources()
+                        .getColor(R.color.design_default_color_primary)) //TODO fix deprecated
+                .setLargeIcon(largeIcon).setSmallIcon(android.R.drawable.stat_sys_headset)
+                .setContentText(activeAudio.getArtist())
+                .setContentTitle(activeAudio.getAlbum())
+                .setContentInfo(activeAudio.getTitle())
+                .addAction(android.R.drawable.ic_media_previous, "previous", playbackAction(3))
+                .addAction(notificationAction, "pause", play_pauseAction)
+                .addAction(android.R.drawable.ic_media_next, "next", playbackAction(2));
+
+        ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE))
+                .notify(NOTIFICATION_ID, notificationBuilder.build());
+    }
+
+    /**
+     * Removes notification
+     */
+    private void removeNotification() {
+        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        notificationManager.cancel(NOTIFICATION_ID);
+    }
+
+    /**
+     * Generates media player actions from notification triggers
+     * @param actionNumber 0: Play, 1: Pause, 2: Next, 3: Prev
+     * @return PENDING INTENT
+     */
+    private PendingIntent playbackAction(int actionNumber) {
+        Intent playbackAction = new Intent(this, MediaPlayerService.class);
+        switch (actionNumber) {
+            case 0:
+                playbackAction.setAction(ACTION_PLAY);
+                return PendingIntent.getService(this, actionNumber, playbackAction, 0);
+            case 1:
+                playbackAction.setAction(ACTION_PAUSE);
+                return PendingIntent.getService(this, actionNumber, playbackAction, 0);
+            case 2:
+                playbackAction.setAction(ACTION_NEXT);
+                return PendingIntent.getService(this, actionNumber, playbackAction, 0);
+            case 3:
+                playbackAction.setAction(ACTION_PREVIOUS);
+                return PendingIntent.getService(this, actionNumber, playbackAction, 0);
+            default:
+                break;
+        }
+        return null;
+    }
+
+    /**
+     * handles the playback action calls
+     * @param playbackAction tells transport to play, pause, etc.
+     */
+    private void handleIncomingActions(Intent playbackAction) {
+        if (playbackAction == null || playbackAction.getAction() == null) return;
+
+        String actionString = playbackAction.getAction();
+        if (actionString.equalsIgnoreCase(ACTION_PLAY)) {
+            transportControls.play();
+        } else if (actionString.equalsIgnoreCase(ACTION_PAUSE)) {
+            transportControls.pause();
+        } else if (actionString.equalsIgnoreCase(ACTION_NEXT)) {
+            transportControls.skipToNext();
+        } else if (actionString.equalsIgnoreCase(ACTION_PREVIOUS)) {
+            transportControls.skipToPrevious();
+        } else if (actionString.equalsIgnoreCase(ACTION_STOP)) {
+            transportControls.stop();
+        }
+    }
+
     // Binder given to clients
     private final IBinder iBinder = new LocalBinder();
 
-    /**
-     *
-     * @param intent
-     * @return
-     */
     @Override
     public IBinder onBind(Intent intent) {
         return iBinder;
@@ -458,32 +575,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         }
 
         return super.onStartCommand(intent, flags, startId);
-    }
-
-    /**
-     * Invoked when service is destroyed.
-     * Stops media, releases the media player, and removes audio focus.
-     */
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        if (mediaPlayer != null) {
-            stopMedia();
-            mediaPlayer.release();
-        }
-        removeAudioFocus();
-        if (phoneStateListener != null) {
-            telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_NONE);
-        }
-
-        //TODO removeNotification();
-
-        //unregister BroadcastReceivers
-        unregisterReceiver(becomingNoisyReceiver);
-        unregisterReceiver(playNewAudio);
-
-        //clear cached playlist
-        new StorageService(getApplicationContext()).clearCachedAudioPlaylist();
     }
 
     /**
