@@ -561,19 +561,37 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         try {
-            mediaFile = intent.getExtras().getString("media");
+            StorageService storage = new StorageService(getApplicationContext());
+            audioList = storage.loadAudio();
+            audioIndex = storage.loadAudioIndex();
+//            mediaFile = intent.getExtras().getString("media");
+
+            if (audioIndex != -1 && audioIndex < audioList.size()) {
+                activeAudio = audioList.get(audioIndex);
+            } else {
+                stopSelf();
+            }
         } catch (NullPointerException e) {
             stopSelf();
         }
 
+        // check if audio focus can be gained
         if (!requestAudioFocus()) {
             stopSelf();
         }
 
-        if (mediaFile != null && !mediaFile.equals("")) {
-            initMediaPlayer();
+        if (mediaSessionManager == null) {
+            try {
+                initMediaSession();
+                initMediaPlayer();
+            } catch (RemoteException e) {
+                e.printStackTrace();
+                stopSelf();
+            }
+            buildNotification(PlaybackStatus.PLAYING);
         }
 
+        handleIncomingActions(intent);
         return super.onStartCommand(intent, flags, startId);
     }
 
