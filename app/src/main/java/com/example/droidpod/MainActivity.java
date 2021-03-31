@@ -10,9 +10,12 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.provider.MediaStore;
+import android.view.View;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 
@@ -24,7 +27,7 @@ public class MainActivity extends AppCompatActivity {
 
     ArrayList<Audio> audioList;
 
-    public static final String Broadcast_PLAY_NEW_AUDIO = "com.valdioveliu.valdio.audioplayer.PlayNewAudio";
+    public static final String Broadcast_PLAY_NEW_AUDIO = "com.example.PlayNewAudio";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,10 +35,22 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         loadAudio();
-//        playAudio(audioList.get(0).getData());
+        initRecyclerView();
+    }
 
-        //test audio
-//        playAudio("https://upload.wikimedia.org/wikipedia/commons/6/6c/Grieg_Lyric_Pieces_Kobold.ogg");
+    private void initRecyclerView() {
+        if (audioList.size() > 0) {
+            RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+            RecyclerViewAdapter adapter = new RecyclerViewAdapter(getApplication(), audioList);
+            recyclerView.setAdapter(adapter);
+            recyclerView.setLayoutManager(new LinearLayoutManager(this));
+            recyclerView.addOnItemTouchListener(new CustomTouchListener(this, new onItemClickListener() {
+                @Override
+                public void onClick(View view, int index) {
+                    playAudio(index);
+                }
+            }));
+        }
     }
 
     private void playAudio(int audioIndex) {

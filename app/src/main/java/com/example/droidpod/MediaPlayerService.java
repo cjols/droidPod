@@ -51,11 +51,11 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     private PhoneStateListener phoneStateListener;
     private TelephonyManager telephonyManager;
 
-    public static final String ACTION_PLAY = "com.valdioveliu.valdio.audioplayer.ACTION_PLAY";
-    public static final String ACTION_PAUSE = "com.valdioveliu.valdio.audioplayer.ACTION_PAUSE";
-    public static final String ACTION_PREVIOUS = "com.valdioveliu.valdio.audioplayer.ACTION_PREVIOUS";
-    public static final String ACTION_NEXT = "com.valdioveliu.valdio.audioplayer.ACTION_NEXT";
-    public static final String ACTION_STOP = "com.valdioveliu.valdio.audioplayer.ACTION_STOP";
+    public static final String ACTION_PLAY = "com.example.droidPod.ACTION_PLAY";
+    public static final String ACTION_PAUSE = "com.example.droidPod.ACTION_PAUSE";
+    public static final String ACTION_PREVIOUS = "com.example.droidPod.ACTION_PREVIOUS";
+    public static final String ACTION_NEXT = "com.example.droidPod.ACTION_NEXT";
+    public static final String ACTION_STOP = "com.example.droidPod.ACTION_STOP";
 
     //MediaSession
     private MediaSessionManager mediaSessionManager;
