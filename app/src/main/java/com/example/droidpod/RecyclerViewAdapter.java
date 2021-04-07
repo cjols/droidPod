@@ -73,7 +73,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-//            title = (TextView) itemView.findViewById(R.id.title);
+            title = (TextView) itemView.findViewById(R.id.title);
             parentLayout = itemView.findViewById(R.id.parent_layout);
         }
     }

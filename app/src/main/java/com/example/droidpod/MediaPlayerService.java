@@ -10,10 +10,12 @@ import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.AudioAttributes;
+import android.media.AudioFocusRequest;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.session.MediaSessionManager;
 import android.os.Binder;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.support.v4.media.MediaMetadataCompat;
@@ -40,6 +42,8 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     private String mediaFile;
     private AudioManager audioManager;
     private int resumePosition;
+    private AudioFocusRequest mFocusRequest;
+    private AudioAttributes mPlaybackAttributes;
 
     // audio files
     private ArrayList<Audio> audioList;
@@ -81,11 +85,14 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
 
         mediaPlayer.reset();
 
-        mediaPlayer.setAudioAttributes(new AudioAttributes.Builder()
+        // initialization of the audio attributes and focus request
+        mPlaybackAttributes = new AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_MEDIA)
                 .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                .build());
+                .build();
+        mediaPlayer.setAudioAttributes(mPlaybackAttributes);
         try {
-            mediaPlayer.setDataSource(mediaFile);
+            mediaPlayer.setDataSource(activeAudio.getData());
         } catch (IOException e) {
             e.printStackTrace();
             stopSelf();
@@ -600,11 +607,32 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
      * @return true if request has been granted
      */
     private boolean requestAudioFocus() {
-        //TODO change deprecated call
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        int result = audioManager.requestAudioFocus(
-                this, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
-        return result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
+        Handler mMyHandler = null;
+        mFocusRequest = new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
+                .setAudioAttributes(mPlaybackAttributes)
+                .setAcceptsDelayedFocusGain(true)
+                .setWillPauseWhenDucked(true)
+                .setOnAudioFocusChangeListener(this, mMyHandler)
+                .build();
+
+        final Object mFocusLock = new Object();
+
+        boolean mPlaybackDelayed = false;
+
+        // requesting audio focus
+        int res = audioManager.requestAudioFocus(mFocusRequest);
+        synchronized (mFocusLock) {
+            if (res == AudioManager.AUDIOFOCUS_REQUEST_FAILED) {
+                return false;
+            } else if (res == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+                return true;
+            } else if (res == AudioManager.AUDIOFOCUS_REQUEST_DELAYED) {
+                mPlaybackDelayed = true;
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -612,8 +640,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
      * @return true if request to remove audio has been granted
      */
     private boolean removeAudioFocus() {
-        //TODO change deprecated call
-        return AudioManager.AUDIOFOCUS_REQUEST_GRANTED == audioManager.abandonAudioFocus(this);
+        return AudioManager.AUDIOFOCUS_REQUEST_GRANTED == audioManager.abandonAudioFocusRequest(mFocusRequest);
     }
 
     /**
