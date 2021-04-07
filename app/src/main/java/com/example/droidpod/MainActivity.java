@@ -96,45 +96,6 @@ public class MainActivity extends AppCompatActivity {
         cursor.close();
     }
 
-//    private void askPermissions() {
-//        if (Build.VERSION.SDK_INT >= 23) {
-//
-//            if (checkSelfPermission(Manifest.permission.MEDIA_CONTENT_CONTROL)
-//                    == PackageManager.PERMISSION_GRANTED) {
-////                Log.v(TAG,"Permission is granted");
-//            } else {
-//
-////                Log.v(TAG,"Permission is revoked");
-//                ActivityCompat.requestPermissions(this, new String[]{ Manifest.permission.MEDIA_CONTENT_CONTROL}, 1);
-//            }
-//        }
-//        else { //permission is automatically granted on sdk<23 upon installation
-////            Log.v(TAG,"Permission is granted");
-//        }
-//    }
-
-//    @Override
-//    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-//        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-//        if (requestCode == 0) {
-//            boolean isPerpermissionForAllGranted = false;
-//            if (grantResults.length > 0 && permissions.length == grantResults.length) {
-//                for (int i = 0; i < permissions.length; i++) {
-//                    if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
-//                        isPerpermissionForAllGranted = true;
-//                    } else {
-//                        isPerpermissionForAllGranted = false;
-//                    }
-//                }
-//
-//                Log.e("value", "Permission Granted");
-//            } else {
-//                isPerpermissionForAllGranted = true;
-//                Log.e("value", "Permission Denied");
-//            }
-//        }
-//    }
-
     //Binding this Client to the AudioPlayer Service
     private ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
