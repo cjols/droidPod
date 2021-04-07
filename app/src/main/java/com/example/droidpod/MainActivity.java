@@ -1,10 +1,13 @@
 package com.example.droidpod;
 
+import android.Manifest;
+import android.app.Activity;
 import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -14,6 +17,7 @@ import android.view.View;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -22,7 +26,6 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity {
 
     private MediaPlayerService player;
-//    private String mediaURI;
     boolean serviceBound = false;
 
     ArrayList<Audio> audioList;
@@ -32,9 +35,15 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (!checkPermissionForReadExternalStorage()) {
+            try {
+                requestPermissionForReadExternalStorage();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
         setContentView(R.layout.activity_main);
 
-//        askPermissions();
         loadAudio();
         initRecyclerView();
     }
@@ -72,13 +81,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void loadAudio() {
-        ContentResolver contentResolver = getContentResolver();
+        ContentResolver contentResolver = getApplicationContext().getContentResolver();
 
         Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-        String selection = MediaStore.Audio.Media.IS_MUSIC + " = 1";
+        String selection = MediaStore.Audio.Media.IS_MUSIC + " != 0";
         String sortOrder = MediaStore.Audio.Media.TITLE + " ASC";
         Cursor cursor = contentResolver.query(uri, null, selection, null, sortOrder);
-
         audioList = new ArrayList<>();
 
         if (cursor != null && cursor.getCount() > 0) {
@@ -91,9 +99,20 @@ public class MainActivity extends AppCompatActivity {
 
                 audioList.add(new Audio(data, title, album, artist));
             }
-        }
+        } else { Toast.makeText(getApplicationContext(), "No media files found", Toast.LENGTH_LONG).show(); }
+
         assert cursor != null;
         cursor.close();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (serviceBound) {
+            unbindService(serviceConnection);
+            //service is active
+            player.stopSelf();
+        }
     }
 
     //Binding this Client to the AudioPlayer Service
@@ -124,5 +143,20 @@ public class MainActivity extends AppCompatActivity {
     public void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
         serviceBound = savedInstanceState.getBoolean("ServiceState");
+    }
+
+    public boolean checkPermissionForReadExternalStorage() {
+        int result = this.checkSelfPermission(android.Manifest.permission.READ_EXTERNAL_STORAGE);
+        return result == PackageManager.PERMISSION_GRANTED;
+    }
+
+    public void requestPermissionForReadExternalStorage() throws Exception {
+        try {
+            ActivityCompat.requestPermissions((Activity) this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                    0x3);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
     }
 }
