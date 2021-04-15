@@ -10,7 +10,7 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 
 public class StorageService {
-    private final String STORAGE = " com.example.droidPod.STORAGE";
+    private final String STORAGE = "com.example.droidPod.STORAGE";
     private SharedPreferences preferences;
     private Context context;
 

@@ -609,7 +609,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
      */
     private boolean requestAudioFocus() {
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-//        Handler mHandler = null;
         mFocusRequest = new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN) //TODO FIX
                 .setAudioAttributes(mPlaybackAttributes)
                 .setAcceptsDelayedFocusGain(true)
@@ -659,7 +658,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         @Override
         public void onReceive(Context context, Intent intent) {
             pauseMedia();
-//            buildNotification(PlaybackStatus.PAUSED);
+            buildNotification(PlaybackStatus.PAUSED);
         }
     };
 

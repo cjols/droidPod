@@ -1,16 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent" android:layout_height="wrap_content"
-    android:padding="15dp"
-    android:id="@+id/parent_layout">
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/cardview"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="6dp"
+    android:elevation="100dp">
 
-    <TextView
-        android:layout_width="wrap_content"
+    <!--android:background="#00bcd4"-->
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/title"
-        android:textColor="#000"
-        android:layout_centerVertical="true"
-        android:layout_marginLeft="30dp"
-        android:textSize="17sp" />
+        android:background="@color/cardview_light_background"
+        android:orientation="horizontal"
+        android:padding="10dp">
 
-</RelativeLayout>
+
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="Title"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:layout_gravity="center_vertical"
+            android:foregroundGravity="center_horizontal" />
+
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>
