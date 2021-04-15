@@ -15,7 +15,6 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.session.MediaSessionManager;
 import android.os.Binder;
-import android.os.Handler;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.support.v4.media.MediaMetadataCompat;
@@ -91,6 +90,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                 .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
                 .build();
         mediaPlayer.setAudioAttributes(mPlaybackAttributes);
+
         try {
             mediaPlayer.setDataSource(activeAudio.getData());
         } catch (IOException e) {
@@ -582,10 +582,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             stopSelf();
         }
 
-        // check if audio focus can be gained
-        if (!requestAudioFocus()) {
-            stopSelf();
-        }
 
         if (mediaSessionManager == null) {
             try {
@@ -598,6 +594,11 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             buildNotification(PlaybackStatus.PLAYING);
         }
 
+        // check if audio focus can be gained
+        if (!requestAudioFocus()) {
+            stopSelf();
+        }
+
         handleIncomingActions(intent);
         return super.onStartCommand(intent, flags, startId);
     }
@@ -608,16 +609,15 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
      */
     private boolean requestAudioFocus() {
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        Handler mMyHandler = null;
-        mFocusRequest = new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
+//        Handler mHandler = null;
+        mFocusRequest = new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN) //TODO FIX
                 .setAudioAttributes(mPlaybackAttributes)
                 .setAcceptsDelayedFocusGain(true)
                 .setWillPauseWhenDucked(true)
-                .setOnAudioFocusChangeListener(this, mMyHandler)
+                .setOnAudioFocusChangeListener(this)
                 .build();
 
         final Object mFocusLock = new Object();
-
         boolean mPlaybackDelayed = false;
 
         // requesting audio focus

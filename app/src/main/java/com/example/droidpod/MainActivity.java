@@ -48,6 +48,10 @@ public class MainActivity extends AppCompatActivity {
         initRecyclerView();
     }
 
+    /**
+     * Sets the recycler view adapter and custom touch listener for
+     * items in the user's audio list
+     */
     private void initRecyclerView() {
         if (audioList.size() > 0) {
             RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
@@ -63,6 +67,11 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Initializes media player and storage services
+     * Sends broadcast play new audio
+     * @param audioIndex audio index the user clicked
+     */
     private void playAudio(int audioIndex) {
         StorageService storage = new StorageService(getApplicationContext());
         if (!serviceBound) {

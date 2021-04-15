@@ -7,7 +7,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -56,7 +55,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             public void onClick(View v) {
                 Log.d(TAG, "onClick: clicked on: " + list.get(position));
 
-                Toast.makeText(mContext, (CharSequence) list.get(position), Toast.LENGTH_SHORT).show();
+//                Toast.makeText(mContext, (CharSequence) list.get(position), Toast.LENGTH_SHORT).show();
             }
         });
     }
