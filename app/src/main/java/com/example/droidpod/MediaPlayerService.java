@@ -45,9 +45,9 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     private AudioAttributes mPlaybackAttributes;
 
     // audio files
-    private ArrayList<Audio> audioList;
-    private int audioIndex = -1;
-    private Audio activeAudio;
+    protected ArrayList<Audio> audioList;
+    protected int audioIndex = -1;
+    protected Audio activeAudio;
 
     // phone vars
     private boolean onGoingCall = false;
