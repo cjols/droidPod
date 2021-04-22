@@ -17,14 +17,10 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
     private static final String TAG = "RecyclerViewAdapter";
 
-//    private ArrayList<String> mImageNames = new ArrayList<>();
-//    private ArrayList<String> mImages = new ArrayList<>();
     private List<Audio> list = Collections.emptyList();
     private Context mContext;
 
     public RecyclerViewAdapter(Context mContext, ArrayList<Audio> list) {
-//        this.mImageNames = mImageNames;
-//        this.mImages = mImages;
         this.list = list;
         this.mContext = mContext;
     }
@@ -49,12 +45,10 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     public class ViewHolder extends RecyclerView.ViewHolder {
 
         TextView title;
-//        RelativeLayout parentLayout;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             title = (TextView) itemView.findViewById(R.id.title);
-//            parentLayout = itemView.findViewById(R.id.parent_layout);
         }
     }
 }

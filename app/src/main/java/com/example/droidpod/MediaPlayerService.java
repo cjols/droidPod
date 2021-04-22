@@ -360,7 +360,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         }
 
         Bitmap largeIcon = BitmapFactory.decodeResource(getResources(),
-                R.drawable.image); //TODO replace image.xml
+                R.drawable.original);
 
         // Create notification
         NotificationCompat.Builder notificationBuilder = new NotificationCompat
@@ -368,7 +368,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                 .setStyle(new androidx.media.app.NotificationCompat.MediaStyle()
                         .setMediaSession(mediaSession.getSessionToken())
                 .setShowActionsInCompactView(0, 1, 2)).setColor(getResources()
-                        .getColor(R.color.design_default_color_primary)) //TODO fix deprecated
+                        .getColor(R.color.design_default_color_primary, getTheme()))
                 .setLargeIcon(largeIcon).setSmallIcon(android.R.drawable.stat_sys_headset)
                 .setContentText(activeAudio.getArtist())
                 .setContentTitle(activeAudio.getAlbum())
@@ -394,7 +394,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
      * @param actionNumber 0: Play, 1: Pause, 2: Next, 3: Prev
      * @return PENDING INTENT
      */
-    private PendingIntent playbackAction(int actionNumber) {
+    protected PendingIntent playbackAction(int actionNumber) {
         Intent playbackAction = new Intent(this, MediaPlayerService.class);
         switch (actionNumber) {
             case 0:

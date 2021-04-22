@@ -62,6 +62,8 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View view, int index) {
                     playAudio(index);
+                    Intent intent = new Intent(MainActivity.this, TransportActivity.class);
+                    startActivity(intent);
                 }
             }));
         }
