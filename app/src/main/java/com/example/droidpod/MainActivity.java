@@ -62,8 +62,8 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View view, int index) {
                     playAudio(index);
-                    //TODO putExtra
                     Intent intent = new Intent(MainActivity.this, TransportActivity.class);
+//                    intent.putExtra("mediaPlayer", (Parcelable) player);
                     startActivity(intent);
                 }
             }));
@@ -136,7 +136,7 @@ public class MainActivity extends AppCompatActivity {
             player = binder.getService();
             serviceBound = true;
 
-            Toast.makeText(MainActivity.this, "Service Bound", Toast.LENGTH_SHORT).show();
+//            Toast.makeText(MainActivity.this, "Service Bound", Toast.LENGTH_SHORT).show();
         }
 
         @Override
@@ -164,8 +164,8 @@ public class MainActivity extends AppCompatActivity {
 
     public void requestPermissionForReadExternalStorage() throws Exception {
         try {
-            ActivityCompat.requestPermissions((Activity) this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-                    0x3);
+            ActivityCompat.requestPermissions((Activity) this,
+                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},0x3);
         } catch (Exception e) {
             e.printStackTrace();
             throw e;

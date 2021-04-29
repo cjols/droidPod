@@ -1,5 +1,6 @@
 package com.example.droidpod;
 
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -67,6 +68,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
 
     //AudioPlayer notification ID
     private static final int NOTIFICATION_ID = 101;
+    private static final String CHANNEL_ID = "com.example.droidPod.NOTIFICATION";
 
     /**
      * Initialize the MediaPlayer object
@@ -107,6 +109,9 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     @Override
     public void onCreate() {
         super.onCreate();
+
+        // Notification channel instantiation
+        createNotificationChannel();
         // Manage incoming phone calls during playback.
         // Pause MediaPlayer on incoming call,
         // Resume on hangup.
@@ -364,7 +369,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
 
         // Create notification
         NotificationCompat.Builder notificationBuilder = new NotificationCompat
-                .Builder(this, "my_channel_id_01").setShowWhen(false)
+                .Builder(this, CHANNEL_ID).setShowWhen(false)
                 .setStyle(new androidx.media.app.NotificationCompat.MediaStyle()
                         .setMediaSession(mediaSession.getSessionToken())
                 .setShowActionsInCompactView(0, 1, 2)).setColor(getResources()
@@ -705,5 +710,18 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         // Listen for changes to the device call state.
         telephonyManager.listen(phoneStateListener,
                 PhoneStateListener.LISTEN_CALL_STATE);
+    }
+
+    private void createNotificationChannel() {
+        CharSequence name = getString(R.string.channel_name);
+        String description = getString(R.string.channel_description);
+        int importance = NotificationManager.IMPORTANCE_DEFAULT;
+        NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
+        channel.setDescription(description);
+
+        // Register the channel with the system; you can't change the importance
+        // or other notification behaviors after this
+        NotificationManager notificationManager = getSystemService(NotificationManager.class);
+        notificationManager.createNotificationChannel(channel);
     }
 }
