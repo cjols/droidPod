@@ -34,7 +34,8 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        holder.title.setText(list.get(position).getTitle());
+        String text = (list.get(position).getTitle()) + " - " + (list.get(position).getArtist());
+        holder.title.setText(text);
     }
 
     @Override

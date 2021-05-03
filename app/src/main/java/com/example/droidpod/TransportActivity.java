@@ -20,7 +20,6 @@ public class TransportActivity extends AppCompatActivity {
 
     private MediaPlayerService player;
     private boolean mBound;
-    private boolean isPlaying;
 
     private TextView title;
     private TextView artist;
@@ -32,15 +31,7 @@ public class TransportActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_transport);
 
-        LocalBroadcastManager.getInstance(TransportActivity.this).registerReceiver(mMessageReceiver,
-                new IntentFilter("com.example.droidPod.REQUEST_PROCESSED"));
-
-        isPlaying = true;
-
-        title = (TextView)findViewById(R.id.textTitle);
-        artist = (TextView)findViewById(R.id.textArtist);
-        album = (TextView)findViewById(R.id.textAlbum);
-        playPauseBtn = (ImageButton)findViewById(R.id.playPauseButton);
+        initializeActivity();
     }
 
     @Override
@@ -50,6 +41,17 @@ public class TransportActivity extends AppCompatActivity {
             Intent mIntent = new Intent(this, MediaPlayerService.class);
             bindService(mIntent, mConnection, Context.BIND_AUTO_CREATE);
         }
+    }
+
+    private void initializeActivity() {
+        // init class broadcast manager
+        LocalBroadcastManager.getInstance(TransportActivity.this).registerReceiver(mMessageReceiver,
+                new IntentFilter("com.example.droidPod.REQUEST_PROCESSED"));
+
+        title = (TextView)findViewById(R.id.textTitle);
+        artist = (TextView)findViewById(R.id.textArtist);
+        album = (TextView)findViewById(R.id.textAlbum);
+        playPauseBtn = (ImageButton)findViewById(R.id.playPauseButton);
     }
 
     private ServiceConnection mConnection = new ServiceConnection() {
@@ -68,6 +70,7 @@ public class TransportActivity extends AppCompatActivity {
     };
 
     private void setMetadata() {
+        // TODO add async execution
         title.setText(player.activeAudio.getTitle());
         artist.setText(player.activeAudio.getArtist());
         album.setText(player.activeAudio.getAlbum());
@@ -86,13 +89,12 @@ public class TransportActivity extends AppCompatActivity {
     public void onPlayPauseButtonClick(View v) {
         // alternate between play and pause button image and playback action
         if (player.mStatus == PlaybackStatus.PLAYING) { // pause
-            playPauseBtn.setImageResource(android.R.drawable.ic_media_play);
+            playPauseBtn.setImageResource(R.drawable.play);
             player.transportControls.pause();
         } else {         // play
-            playPauseBtn.setImageResource(android.R.drawable.ic_media_pause);
+            playPauseBtn.setImageResource(R.drawable.pause);
             player.transportControls.play();
         }
-        isPlaying = !isPlaying;
     }
 
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
