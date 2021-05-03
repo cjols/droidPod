@@ -48,6 +48,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     protected ArrayList<Audio> audioList;
     protected int audioIndex = -1;
     protected Audio activeAudio;
+    private Bitmap albumArt;
 
     // phone vars
     private boolean onGoingCall = false;
@@ -66,8 +67,8 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     protected MediaControllerCompat.TransportControls transportControls;
 
     //AudioPlayer notification ID
-    private static final int NOTIFICATION_ID = 101;
-    private static final String CHANNEL_ID = "com.example.droidPod.NOTIFICATION";
+    private static final int NOTIFICATION_ID = 001;
+    private static final String CHANNEL_ID = "Transport Controller";
 
     //Playback Status
     protected PlaybackStatus mStatus;
@@ -307,8 +308,9 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
      * updates shown metadata to that of the currently playing track
      */
     private void updateMetaData() {
-        Bitmap albumArt = BitmapFactory.decodeResource(getResources(),
-                R.drawable.image); //replace with medias albumArt
+        albumArt = getAlbumArt(this);
+
+
         // Update the current metadata
         mediaSession.setMetadata(new MediaMetadataCompat.Builder()
                 .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, albumArt)
@@ -357,7 +359,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     /**
      * Builds notification for current play track
      */
-    private void buildNotification() {
+    protected void buildNotification() {
         int notificationAction = android.R.drawable.ic_media_pause;
         PendingIntent play_pauseAction = null;
 
@@ -376,14 +378,15 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         // Create notification
         NotificationCompat.Builder notificationBuilder = new NotificationCompat
                 .Builder(this, CHANNEL_ID).setShowWhen(false)
+                .setContentText(activeAudio.getArtist())
+                .setContentTitle(activeAudio.getAlbum())
+                .setContentInfo(activeAudio.getTitle())
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setStyle(new androidx.media.app.NotificationCompat.MediaStyle()
                         .setMediaSession(mediaSession.getSessionToken())
                 .setShowActionsInCompactView(0, 1, 2)).setColor(getResources()
                         .getColor(R.color.design_default_color_primary, getTheme()))
                 .setLargeIcon(largeIcon).setSmallIcon(android.R.drawable.stat_sys_headset)
-                .setContentText(activeAudio.getArtist())
-                .setContentTitle(activeAudio.getAlbum())
-                .setContentInfo(activeAudio.getTitle())
                 .addAction(android.R.drawable.ic_media_previous, "previous", playbackAction(3))
                 .addAction(notificationAction, "pause", play_pauseAction)
                 .addAction(android.R.drawable.ic_media_next, "next", playbackAction(2));
@@ -391,6 +394,62 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE))
                 .notify(NOTIFICATION_ID, notificationBuilder.build());
     }
+
+    public Bitmap getAlbumArt(Context context) {
+//        Cursor cursor = getContentResolver().query(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
+//                null, null, null, null);
+//        String album_id = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ID));
+//
+//        new String[] {MediaStore.Audio.Albums._ID, MediaStore.Audio.Albums.ALBUM_ART},
+//                MediaStore.Audio.Albums._ID+ "=?",
+//                new String[] {String.valueOf(album_id)},
+//                null);
+
+//        if (cursor.moveToFirst()) {
+//            String path = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
+//            albumArt = BitmapFactory.decodeResource(getResources(),
+//                    R.drawable.image);
+//        }
+//
+//        Bitmap albumArtBitMap = null;
+//        BitmapFactory.Options options = new BitmapFactory.Options();
+//        try {
+//
+//            final Uri sArtworkUri = Uri.parse("content://media/external/audio/albumart");
+//            Uri uri = ContentUris.withAppendedId(sArtworkUri, album_id);
+//            ParcelFileDescriptor pfd = context.getContentResolver()
+//                    .openFileDescriptor(uri, "r");
+//
+//            if (pfd != null) {
+//                FileDescriptor fd = pfd.getFileDescriptor();
+//                albumArtBitMap = BitmapFactory.decodeFileDescriptor(fd, null, options);
+//                pfd = null;
+//                fd = null;
+//            }
+//        } catch (Error | Exception ignored) {
+//        }
+//
+//        if (null != albumArtBitMap) {
+//            return albumArtBitMap;
+//        }
+////        return getDefaultAlbumArtEfficiently(context.getResources());
+        return null;
+    }
+
+
+
+//    public Bitmap getDefaultAlbumArtEfficiently(Resources resource) {
+//
+//        if (defaultBitmapArt == null) {
+//
+//            defaultBitmapArt = decodeSampledBitmapFromResource(resource,
+//                    R.drawable.default_album_art, UtilFunctions
+//                            .getUtilFunctions().dpToPixels(85, resource),
+//                    UtilFunctions.getUtilFunctions().dpToPixels(85, resource));
+//
+//        }
+//        return defaultBitmapArt;
+//    }
 
     /**
      * Removes notification
@@ -722,7 +781,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     private void createNotificationChannel() {
         CharSequence name = getString(R.string.channel_name);
         String description = getString(R.string.channel_description);
-        int importance = NotificationManager.IMPORTANCE_DEFAULT;
+        int importance = NotificationManager.IMPORTANCE_LOW;
         NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
         channel.setDescription(description);
 
