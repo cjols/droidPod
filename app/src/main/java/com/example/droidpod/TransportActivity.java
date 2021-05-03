@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -19,10 +20,12 @@ public class TransportActivity extends AppCompatActivity {
 
     private MediaPlayerService player;
     private boolean mBound;
+    private boolean isPlaying;
 
     private TextView title;
     private TextView artist;
     private TextView album;
+    private ImageButton playPauseBtn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,9 +35,12 @@ public class TransportActivity extends AppCompatActivity {
         LocalBroadcastManager.getInstance(TransportActivity.this).registerReceiver(mMessageReceiver,
                 new IntentFilter("com.example.droidPod.REQUEST_PROCESSED"));
 
+        isPlaying = true;
+
         title = (TextView)findViewById(R.id.textTitle);
         artist = (TextView)findViewById(R.id.textArtist);
         album = (TextView)findViewById(R.id.textAlbum);
+        playPauseBtn = (ImageButton)findViewById(R.id.playPauseButton);
     }
 
     @Override
@@ -68,18 +74,25 @@ public class TransportActivity extends AppCompatActivity {
     }
 
     public void onPrevButtonClick(View v) {
-        player.playbackAction(3);
+        player.transportControls.skipToPrevious();
         setMetadata();
     }
 
     public void onNextButtonClick(View v) {
-        player.playbackAction(2);
+        player.transportControls.skipToNext();
         setMetadata();
     }
 
     public void onPlayPauseButtonClick(View v) {
-        // TODO play pause logic
         // alternate between play and pause button image and playback action
+        if (player.mStatus == PlaybackStatus.PLAYING) { // pause
+            playPauseBtn.setImageResource(android.R.drawable.ic_media_play);
+            player.transportControls.pause();
+        } else {         // play
+            playPauseBtn.setImageResource(android.R.drawable.ic_media_pause);
+            player.transportControls.play();
+        }
+        isPlaying = !isPlaying;
     }
 
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {

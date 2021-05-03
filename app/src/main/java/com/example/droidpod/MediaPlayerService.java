@@ -39,7 +39,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         AudioManager.OnAudioFocusChangeListener {
 
     private MediaPlayer mediaPlayer;
-    private String mediaFile;
     private AudioManager audioManager;
     private int resumePosition;
     private AudioFocusRequest mFocusRequest;
@@ -64,11 +63,14 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     //MediaSession
     private MediaSessionManager mediaSessionManager;
     private MediaSessionCompat mediaSession;
-    private MediaControllerCompat.TransportControls transportControls;
+    protected MediaControllerCompat.TransportControls transportControls;
 
     //AudioPlayer notification ID
     private static final int NOTIFICATION_ID = 101;
     private static final String CHANNEL_ID = "com.example.droidPod.NOTIFICATION";
+
+    //Playback Status
+    protected PlaybackStatus mStatus;
 
     /**
      * Initialize the MediaPlayer object
@@ -193,7 +195,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     /**
      * Assign active audio track and initialize new media player
      */
-    private BroadcastReceiver playNewAudio = new BroadcastReceiver() {
+    private final BroadcastReceiver playNewAudio = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             //Get the new media index form SharedPreferences
@@ -211,7 +213,8 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             mediaPlayer.reset();
             initMediaPlayer();
             updateMetaData();
-            buildNotification(PlaybackStatus.PLAYING);
+            mStatus = PlaybackStatus.PLAYING;
+            buildNotification();
         }
     };
 
@@ -225,7 +228,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
 
     /**
      *  Initializes the media session
-     * @throws RemoteException
+     * @throws RemoteException remote exception
      */
     private void initMediaSession() throws RemoteException {
         if (mediaSessionManager != null) return; //mediaSessionManager exists
@@ -255,14 +258,16 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             public void onPlay() {
                 super.onPlay();
                 resumeMedia();
-                buildNotification(PlaybackStatus.PLAYING);
+                mStatus = PlaybackStatus.PLAYING;
+                buildNotification();
             }
 
             @Override
             public void onPause() {
                 super.onPause();
                 pauseMedia();
-                buildNotification(PlaybackStatus.PAUSED);
+                mStatus = PlaybackStatus.PAUSED;
+                buildNotification();
             }
 
             @Override
@@ -270,7 +275,8 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                 super.onSkipToNext();
                 skipToNext();
                 updateMetaData();
-                buildNotification(PlaybackStatus.PLAYING);
+                mStatus = PlaybackStatus.PLAYING;
+                buildNotification();
             }
 
             @Override
@@ -278,7 +284,8 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                 super.onSkipToPrevious();
                 skipToPrevious();
                 updateMetaData();
-                buildNotification(PlaybackStatus.PLAYING);
+                mStatus = PlaybackStatus.PLAYING;
+                buildNotification();
             }
 
             @Override
@@ -349,17 +356,16 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
 
     /**
      * Builds notification for current play track
-     * @param playbackStatus
      */
-    private void buildNotification(PlaybackStatus playbackStatus) {
+    private void buildNotification() {
         int notificationAction = android.R.drawable.ic_media_pause;
         PendingIntent play_pauseAction = null;
 
         // Build notification based on MediaPlayer state
-        if (playbackStatus == PlaybackStatus.PLAYING) {
+        if (mStatus == PlaybackStatus.PLAYING) {
             notificationAction = android.R.drawable.ic_media_pause;
             play_pauseAction = playbackAction(1);
-        } else if (playbackStatus == PlaybackStatus.PAUSED) {
+        } else if (mStatus == PlaybackStatus.PAUSED) {
             notificationAction = android.R.drawable.ic_media_play;
             play_pauseAction = playbackAction(0);
         }
@@ -451,8 +457,8 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
 
     /**
      * Invoked when the network stream has updated buffering
-     * @param mp
-     * @param percent
+     * @param mp media player
+     * @param percent percent loaded
      */
     @Override
     public void onBufferingUpdate(MediaPlayer mp, int percent) {
@@ -497,10 +503,10 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
 
     /**
      * Invoked when info is being communicated
-     * @param mp
-     * @param what
-     * @param extra
-     * @return
+     * @param mp media player
+     * @param what index
+     * @param extra info
+     * @return false
      */
     @Override
     public boolean onInfo(MediaPlayer mp, int what, int extra) {
@@ -576,7 +582,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             StorageService storage = new StorageService(getApplicationContext());
             audioList = storage.loadAudio();
             audioIndex = storage.loadAudioIndex();
-//            mediaFile = intent.getExtras().getString("media");
 
             if (audioIndex != -1 && audioIndex < audioList.size()) {
                 activeAudio = audioList.get(audioIndex);
@@ -596,7 +601,8 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                 e.printStackTrace();
                 stopSelf();
             }
-            buildNotification(PlaybackStatus.PLAYING);
+            mStatus = PlaybackStatus.PLAYING;
+            buildNotification();
         }
 
         // check if audio focus can be gained
@@ -614,7 +620,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
      */
     private boolean requestAudioFocus() {
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        mFocusRequest = new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN) //TODO FIX
+        mFocusRequest = new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
                 .setAudioAttributes(mPlaybackAttributes)
                 .setAcceptsDelayedFocusGain(true)
                 .setWillPauseWhenDucked(true)
@@ -659,11 +665,12 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     /**
      * Change in audio output
      */
-    private BroadcastReceiver becomingNoisyReceiver = new BroadcastReceiver() {
+    private final BroadcastReceiver becomingNoisyReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             pauseMedia();
-            buildNotification(PlaybackStatus.PAUSED);
+            mStatus = PlaybackStatus.PAUSED;
+            buildNotification();
         }
     };
 
