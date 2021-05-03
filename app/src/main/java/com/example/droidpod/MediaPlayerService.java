@@ -5,6 +5,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
+import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -15,8 +16,10 @@ import android.media.AudioFocusRequest;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.session.MediaSessionManager;
+import android.net.Uri;
 import android.os.Binder;
 import android.os.IBinder;
+import android.os.ParcelFileDescriptor;
 import android.os.RemoteException;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
@@ -27,6 +30,7 @@ import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 
+import java.io.FileDescriptor;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -372,8 +376,9 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             play_pauseAction = playbackAction(0);
         }
 
-        Bitmap largeIcon = BitmapFactory.decodeResource(getResources(),
-                R.drawable.original);
+//        Bitmap largeIcon = BitmapFactory.decodeResource(getResources(),
+//                R.drawable.original);
+        Bitmap largeIcon = getAlbumArt(this);
 
         // Create notification
         NotificationCompat.Builder notificationBuilder = new NotificationCompat
@@ -404,36 +409,34 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
 //                MediaStore.Audio.Albums._ID+ "=?",
 //                new String[] {String.valueOf(album_id)},
 //                null);
-
+//
 //        if (cursor.moveToFirst()) {
 //            String path = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
 //            albumArt = BitmapFactory.decodeResource(getResources(),
 //                    R.drawable.image);
 //        }
-//
-//        Bitmap albumArtBitMap = null;
-//        BitmapFactory.Options options = new BitmapFactory.Options();
-//        try {
-//
-//            final Uri sArtworkUri = Uri.parse("content://media/external/audio/albumart");
-//            Uri uri = ContentUris.withAppendedId(sArtworkUri, album_id);
-//            ParcelFileDescriptor pfd = context.getContentResolver()
-//                    .openFileDescriptor(uri, "r");
-//
-//            if (pfd != null) {
-//                FileDescriptor fd = pfd.getFileDescriptor();
-//                albumArtBitMap = BitmapFactory.decodeFileDescriptor(fd, null, options);
-//                pfd = null;
-//                fd = null;
-//            }
-//        } catch (Error | Exception ignored) {
-//        }
-//
-//        if (null != albumArtBitMap) {
-//            return albumArtBitMap;
-//        }
+
+        Long album_id = activeAudio.getAlbumId();
+        Bitmap albumArtBitMap = null;
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        try {
+
+            final Uri sArtworkUri = Uri.parse("content://media/external/audio/albumart");
+            Uri uri = ContentUris.withAppendedId(sArtworkUri, album_id);
+            ParcelFileDescriptor pfd = context.getContentResolver()
+                    .openFileDescriptor(uri, "r");
+
+            if (pfd != null) {
+                FileDescriptor fd = pfd.getFileDescriptor();
+                albumArtBitMap = BitmapFactory.decodeFileDescriptor(fd, null, options);
+                pfd = null;
+                fd = null;
+            }
+        } catch (Error | Exception ignored) {
+        }
+
+        return albumArtBitMap;
 ////        return getDefaultAlbumArtEfficiently(context.getResources());
-        return null;
     }
 
 

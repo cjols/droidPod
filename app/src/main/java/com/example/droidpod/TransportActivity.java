@@ -11,6 +11,7 @@ import android.os.IBinder;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -25,6 +26,7 @@ public class TransportActivity extends AppCompatActivity {
     private TextView artist;
     private TextView album;
     private ImageButton playPauseBtn;
+    private ImageView albumArtImg;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,11 +49,12 @@ public class TransportActivity extends AppCompatActivity {
         // init class broadcast manager
         LocalBroadcastManager.getInstance(TransportActivity.this).registerReceiver(mMessageReceiver,
                 new IntentFilter("com.example.droidPod.REQUEST_PROCESSED"));
-
-        title = (TextView)findViewById(R.id.textTitle);
-        artist = (TextView)findViewById(R.id.textArtist);
-        album = (TextView)findViewById(R.id.textAlbum);
-        playPauseBtn = (ImageButton)findViewById(R.id.playPauseButton);
+        // init views
+        title = (TextView) findViewById(R.id.textTitle);
+        artist = (TextView) findViewById(R.id.textArtist);
+        album = (TextView) findViewById(R.id.textAlbum);
+        albumArtImg = (ImageView) findViewById(R.id.imageAlbumArt);
+        playPauseBtn = (ImageButton) findViewById(R.id.playPauseButton);
     }
 
     private ServiceConnection mConnection = new ServiceConnection() {
@@ -74,15 +77,18 @@ public class TransportActivity extends AppCompatActivity {
         title.setText(player.activeAudio.getTitle());
         artist.setText(player.activeAudio.getArtist());
         album.setText(player.activeAudio.getAlbum());
+        albumArtImg.setImageBitmap(player.getAlbumArt(this));
     }
 
     public void onPrevButtonClick(View v) {
         player.transportControls.skipToPrevious();
+        playPauseBtn.setImageResource(R.drawable.pause);
         setMetadata();
     }
 
     public void onNextButtonClick(View v) {
         player.transportControls.skipToNext();
+        playPauseBtn.setImageResource(R.drawable.pause);
         setMetadata();
     }
 
