@@ -791,4 +791,8 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         NotificationManager notificationManager = getSystemService(NotificationManager.class);
         notificationManager.createNotificationChannel(channel);
     }
+
+    public void setResumePosition(int pos) {
+        resumePosition = pos;
+    }
 }

@@ -25,6 +25,7 @@ public class TransportActivity extends AppCompatActivity {
 
     private MediaPlayerService player;
     private boolean mBound;
+    private int curProg;
 
     private TextView title;
     private TextView artist;
@@ -40,7 +41,10 @@ public class TransportActivity extends AppCompatActivity {
         public void run() {
             handler.postDelayed(this, 1000);
             try {
-                if (player.mStatus == PlaybackStatus.PLAYING) updateTime();
+                if (player.mStatus == PlaybackStatus.PLAYING)
+                    updateTime();
+                if (curProg >= player.getEndVal())
+                    player.transportControls.skipToNext();
                 if (player.activeAudio.getTitle() != title.getText())
                     setMetadata();
             } catch (InterruptedException e) {
@@ -84,8 +88,12 @@ public class TransportActivity extends AppCompatActivity {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 // set seek bar to change song progress
-                if (fromUser)
+                if (fromUser) {
                     player.seekTo(progress);
+                    if (player.mStatus == PlaybackStatus.PAUSED) {
+                        player.setResumePosition(progress);
+                    }
+                }
             }
 
             @Override
@@ -132,7 +140,8 @@ public class TransportActivity extends AppCompatActivity {
 
     private void updateTime() throws InterruptedException {
             curTime.setText(player.getCurrentTime());
-            seekBar.setProgress(player.getCurrentVal());
+            curProg = player.getCurrentVal();
+            seekBar.setProgress(curProg);
     }
 
     public void onPrevButtonClick(View v) {
