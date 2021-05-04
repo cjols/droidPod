@@ -12,6 +12,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -25,8 +26,11 @@ public class TransportActivity extends AppCompatActivity {
     private TextView title;
     private TextView artist;
     private TextView album;
+    private TextView curTime;
+    private TextView endTime;
     private ImageButton playPauseBtn;
     private ImageView albumArtImg;
+    private SeekBar seekBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,8 +57,29 @@ public class TransportActivity extends AppCompatActivity {
         title = (TextView) findViewById(R.id.textTitle);
         artist = (TextView) findViewById(R.id.textArtist);
         album = (TextView) findViewById(R.id.textAlbum);
+        curTime = (TextView) findViewById(R.id.textCurTime);
+        endTime = (TextView) findViewById(R.id.textEndTime);
         albumArtImg = (ImageView) findViewById(R.id.imageAlbumArt);
         playPauseBtn = (ImageButton) findViewById(R.id.playPauseButton);
+        seekBar = (SeekBar) findViewById(R.id.seekBar);
+
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                // set seek bar to change song progress
+//                player.
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
     }
 
     private ServiceConnection mConnection = new ServiceConnection() {
@@ -64,6 +89,11 @@ public class TransportActivity extends AppCompatActivity {
             player = binder.getService();
             mBound = true;
             setMetadata();
+//            try {
+////                updateTime();
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
         }
 
         @Override
@@ -78,6 +108,16 @@ public class TransportActivity extends AppCompatActivity {
         artist.setText(player.activeAudio.getArtist());
         album.setText(player.activeAudio.getAlbum());
         albumArtImg.setImageBitmap(player.getAlbumArt(this));
+        endTime.setText(player.getEndTime());
+        seekBar.setMax(player.getEndVal());
+    }
+
+    private void updateTime() throws InterruptedException {
+        while (player.mStatus == PlaybackStatus.PLAYING) {
+            // TODO add async execution
+            curTime.setText(player.getCurrentTime());
+            seekBar.setProgress(player.getCurrentVal());
+        }
     }
 
     public void onPrevButtonClick(View v) {

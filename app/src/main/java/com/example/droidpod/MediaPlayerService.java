@@ -314,7 +314,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     private void updateMetaData() {
         albumArt = getAlbumArt(this);
 
-
         // Update the current metadata
         mediaSession.setMetadata(new MediaMetadataCompat.Builder()
                 .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, albumArt)
@@ -360,6 +359,28 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         initMediaPlayer();
     }
 
+    public String getCurrentTime() {
+        return timeToString(mediaPlayer.getCurrentPosition());
+    }
+
+    public String getEndTime() {
+        return timeToString(mediaPlayer.getDuration());
+    }
+
+    public String timeToString(int time) {
+        int minutes = time / 60000;
+        int seconds = (time % 60000) / 1000;
+        return minutes + ":" + seconds;
+    }
+
+    public int getCurrentVal() {
+        return mediaPlayer.getCurrentPosition();
+    }
+
+    public int getEndVal() {
+        return mediaPlayer.getDuration();
+    }
+
     /**
      * Builds notification for current play track
      */
@@ -376,8 +397,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             play_pauseAction = playbackAction(0);
         }
 
-//        Bitmap largeIcon = BitmapFactory.decodeResource(getResources(),
-//                R.drawable.original);
         Bitmap largeIcon = getAlbumArt(this);
 
         // Create notification
@@ -401,21 +420,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     }
 
     public Bitmap getAlbumArt(Context context) {
-//        Cursor cursor = getContentResolver().query(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
-//                null, null, null, null);
-//        String album_id = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ID));
-//
-//        new String[] {MediaStore.Audio.Albums._ID, MediaStore.Audio.Albums.ALBUM_ART},
-//                MediaStore.Audio.Albums._ID+ "=?",
-//                new String[] {String.valueOf(album_id)},
-//                null);
-//
-//        if (cursor.moveToFirst()) {
-//            String path = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
-//            albumArt = BitmapFactory.decodeResource(getResources(),
-//                    R.drawable.image);
-//        }
-
         Long album_id = activeAudio.getAlbumId();
         Bitmap albumArtBitMap = null;
         BitmapFactory.Options options = new BitmapFactory.Options();
@@ -436,23 +440,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         }
 
         return albumArtBitMap;
-////        return getDefaultAlbumArtEfficiently(context.getResources());
     }
-
-
-
-//    public Bitmap getDefaultAlbumArtEfficiently(Resources resource) {
-//
-//        if (defaultBitmapArt == null) {
-//
-//            defaultBitmapArt = decodeSampledBitmapFromResource(resource,
-//                    R.drawable.default_album_art, UtilFunctions
-//                            .getUtilFunctions().dpToPixels(85, resource),
-//                    UtilFunctions.getUtilFunctions().dpToPixels(85, resource));
-//
-//        }
-//        return defaultBitmapArt;
-//    }
 
     /**
      * Removes notification

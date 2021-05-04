@@ -12,7 +12,7 @@
         android:layout_height="100dp"
         android:layout_marginStart="100dp"
         android:layout_marginEnd="16dp"
-        android:layout_marginBottom="32dp"
+        android:layout_marginBottom="24dp"
         android:onClick="onPrevButtonClick"
         android:scaleX="0.33"
         android:scaleY="0.33"
@@ -28,7 +28,7 @@
         android:layout_height="100dp"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="100dp"
-        android:layout_marginBottom="32dp"
+        android:layout_marginBottom="24dp"
         android:onClick="onNextButtonClick"
         android:scaleX="0.33"
         android:scaleY="0.33"
@@ -42,7 +42,7 @@
         android:id="@+id/playPauseButton"
         android:layout_width="100dp"
         android:layout_height="100dp"
-        android:layout_marginBottom="32dp"
+        android:layout_marginBottom="24dp"
         android:onClick="onPlayPauseButtonClick"
         android:scaleX="0.6"
         android:scaleY="0.6"
@@ -69,11 +69,11 @@
         android:id="@+id/textArtist"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="24dp"
+        android:layout_marginBottom="16dp"
         android:text="Active Artist"
         android:textColor="@android:color/primary_text_light"
         android:textSize="14sp"
-        app:layout_constraintBottom_toTopOf="@+id/playPauseButton"
+        app:layout_constraintBottom_toTopOf="@+id/seekBar"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
@@ -106,11 +106,48 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginTop="80dp"
-        android:layout_marginBottom="290dp"
+        android:layout_marginBottom="320dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.25"
         app:srcCompat="@drawable/image" />
+
+    <SeekBar
+        android:id="@+id/seekBar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="72dp"
+        android:layout_marginEnd="72dp"
+        android:layout_marginBottom="16dp"
+        android:max="100"
+        android:progress="0"
+        app:layout_constraintBottom_toTopOf="@+id/playPauseButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/textCurTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="8dp"
+        android:text="0:00"
+        app:layout_constraintBottom_toBottomOf="@+id/seekBar"
+        app:layout_constraintEnd_toStartOf="@+id/seekBar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/seekBar" />
+
+    <TextView
+        android:id="@+id/textEndTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="16dp"
+        android:text="9:99"
+        app:layout_constraintBottom_toBottomOf="@+id/seekBar"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/seekBar"
+        app:layout_constraintTop_toTopOf="@+id/seekBar" />
 </androidx.constraintlayout.widget.ConstraintLayout>
