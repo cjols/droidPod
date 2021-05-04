@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
 import android.view.View;
@@ -31,6 +32,20 @@ public class TransportActivity extends AppCompatActivity {
     private ImageButton playPauseBtn;
     private ImageView albumArtImg;
     private SeekBar seekBar;
+
+    final Handler handler = new Handler();
+    final Runnable r = new Runnable() {
+        public void run() {
+            handler.postDelayed(this, 1000);
+            try {
+                if (player.mStatus == PlaybackStatus.PLAYING) updateTime();
+                if (player.activeAudio.getTitle() != title.getText())
+                    setMetadata();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,7 +82,8 @@ public class TransportActivity extends AppCompatActivity {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 // set seek bar to change song progress
-//                player.
+                if (fromUser)
+                    player.seekTo(progress);
             }
 
             @Override
@@ -89,11 +105,7 @@ public class TransportActivity extends AppCompatActivity {
             player = binder.getService();
             mBound = true;
             setMetadata();
-//            try {
-////                updateTime();
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
+            r.run();
         }
 
         @Override
@@ -103,7 +115,6 @@ public class TransportActivity extends AppCompatActivity {
     };
 
     private void setMetadata() {
-        // TODO add async execution
         title.setText(player.activeAudio.getTitle());
         artist.setText(player.activeAudio.getArtist());
         album.setText(player.activeAudio.getAlbum());
@@ -113,23 +124,20 @@ public class TransportActivity extends AppCompatActivity {
     }
 
     private void updateTime() throws InterruptedException {
-        while (player.mStatus == PlaybackStatus.PLAYING) {
-            // TODO add async execution
             curTime.setText(player.getCurrentTime());
             seekBar.setProgress(player.getCurrentVal());
-        }
     }
 
     public void onPrevButtonClick(View v) {
         player.transportControls.skipToPrevious();
         playPauseBtn.setImageResource(R.drawable.pause);
-        setMetadata();
+//        setMetadata();
     }
 
     public void onNextButtonClick(View v) {
         player.transportControls.skipToNext();
         playPauseBtn.setImageResource(R.drawable.pause);
-        setMetadata();
+//        setMetadata();
     }
 
     public void onPlayPauseButtonClick(View v) {

@@ -344,19 +344,23 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
      * Goes back to previous track from current track
      */
     private void skipToPrevious() {
-        // checks if current track is first in playlist
-        //TODO check track time to restart track
-        if (audioIndex == 0) {
-            audioIndex = audioList.size() - 1;
-            activeAudio = audioList.get(audioIndex);
-        } else {
-            activeAudio = audioList.get(--audioIndex);
-        }
+        // check track time to restart track if under 3 sec has passed
+        if (getCurrentVal() < 3000) {
+            // checks if current track is first in playlist
+            if (audioIndex == 0) {
+                audioIndex = audioList.size() - 1;
+                activeAudio = audioList.get(audioIndex);
+            } else {
+                activeAudio = audioList.get(--audioIndex);
+            }
 
-        new StorageService(getApplicationContext()).storeAudioIndex(audioIndex);
-        stopMedia();
-        mediaPlayer.reset();
-        initMediaPlayer();
+            new StorageService(getApplicationContext()).storeAudioIndex(audioIndex);
+            stopMedia();
+            mediaPlayer.reset();
+            initMediaPlayer();
+        } else {
+            mediaPlayer.seekTo(0);
+        }
     }
 
     public String getCurrentTime() {
@@ -370,6 +374,8 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     public String timeToString(int time) {
         int minutes = time / 60000;
         int seconds = (time % 60000) / 1000;
+        if (seconds < 10)
+            return minutes + ":0" + seconds;
         return minutes + ":" + seconds;
     }
 
@@ -379,6 +385,10 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
 
     public int getEndVal() {
         return mediaPlayer.getDuration();
+    }
+
+    public void seekTo(int position) {
+        mediaPlayer.seekTo(position);
     }
 
     /**
