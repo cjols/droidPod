@@ -9,9 +9,13 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import de.hdodenhof.circleimageview.CircleImageView;
 
 public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder> {
 
@@ -34,8 +38,15 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        String text = (list.get(position).getTitle()) + " - " + (list.get(position).getArtist());
-        holder.title.setText(text);
+        String text = (list.get(position).getArtist()) + " - " + (list.get(position).getAlbum());
+        holder.title.setText(list.get(position).getTitle());
+        holder.artistAlbum.setText(text);
+        holder.albumArt.setImageBitmap(MediaPlayerService.getAlbumArt(this.mContext, list.get(position).getAlbumId()));
+
+        Glide.with(mContext)
+                .asBitmap()
+                .load(MediaPlayerService.getAlbumArt(this.mContext, list.get(position).getAlbumId()))
+                .into(holder.albumArt);
     }
 
     @Override
@@ -46,10 +57,14 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     public class ViewHolder extends RecyclerView.ViewHolder {
 
         TextView title;
+        TextView artistAlbum;
+        CircleImageView albumArt;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             title = (TextView) itemView.findViewById(R.id.title);
+            artistAlbum = (TextView) itemView.findViewById(R.id.artist_album);
+            albumArt = (CircleImageView) itemView.findViewById(R.id.album);
         }
     }
 }

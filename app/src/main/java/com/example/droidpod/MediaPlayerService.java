@@ -312,7 +312,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
      * updates shown metadata to that of the currently playing track
      */
     private void updateMetaData() {
-        albumArt = getAlbumArt(this);
+        albumArt = getAlbumArt(this, activeAudio.getAlbumId());
 
         // Update the current metadata
         mediaSession.setMetadata(new MediaMetadataCompat.Builder()
@@ -407,7 +407,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             play_pauseAction = playbackAction(0);
         }
 
-        Bitmap largeIcon = getAlbumArt(this);
+        Bitmap largeIcon = getAlbumArt(this, activeAudio.getAlbumId());
 
         // Create notification
         NotificationCompat.Builder notificationBuilder = new NotificationCompat
@@ -429,8 +429,8 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                 .notify(NOTIFICATION_ID, notificationBuilder.build());
     }
 
-    public Bitmap getAlbumArt(Context context) {
-        Long album_id = activeAudio.getAlbumId();
+    public static Bitmap getAlbumArt(Context context, Long album_id) {
+//        Long album_id = activeAudio.getAlbumId();
         Bitmap albumArtBitMap = null;
         BitmapFactory.Options options = new BitmapFactory.Options();
         try {

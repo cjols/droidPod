@@ -19,6 +19,8 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import com.bumptech.glide.Glide;
+
 public class TransportActivity extends AppCompatActivity {
 
     private MediaPlayerService player;
@@ -118,9 +120,14 @@ public class TransportActivity extends AppCompatActivity {
         title.setText(player.activeAudio.getTitle());
         artist.setText(player.activeAudio.getArtist());
         album.setText(player.activeAudio.getAlbum());
-        albumArtImg.setImageBitmap(player.getAlbumArt(this));
+//        albumArtImg.setImageBitmap(MediaPlayerService.getAlbumArt(this, player.activeAudio.getAlbumId()));
         endTime.setText(player.getEndTime());
         seekBar.setMax(player.getEndVal());
+
+        Glide.with(this)
+                .asBitmap()
+                .load(MediaPlayerService.getAlbumArt(this, player.activeAudio.getAlbumId()))
+                .into(albumArtImg);
     }
 
     private void updateTime() throws InterruptedException {
