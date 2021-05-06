@@ -22,7 +22,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     private static final String TAG = "RecyclerViewAdapter";
 
     private List<Audio> list = Collections.emptyList();
-    private Context mContext;
+    private final Context mContext;
 
     public RecyclerViewAdapter(Context mContext, ArrayList<Audio> list) {
         this.list = list;
@@ -32,7 +32,8 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.layout_listitem, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.layout_listitem,
+                parent, false);
         return new ViewHolder(view);
     }
 
@@ -41,11 +42,13 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         String text = (list.get(position).getArtist()) + " - " + (list.get(position).getAlbum());
         holder.title.setText(list.get(position).getTitle());
         holder.artistAlbum.setText(text);
-        holder.albumArt.setImageBitmap(MediaPlayerService.getAlbumArt(this.mContext, list.get(position).getAlbumId()));
+        holder.albumArt.setImageBitmap(MediaPlayerService.getAlbumArt(this.mContext,
+                list.get(position).getAlbumId()));
 
         Glide.with(mContext)
                 .asBitmap()
-                .load(MediaPlayerService.getAlbumArt(this.mContext, list.get(position).getAlbumId()))
+                .load(MediaPlayerService.getAlbumArt(this.mContext,
+                        list.get(position).getAlbumId()))
                 .into(holder.albumArt);
     }
 

@@ -43,7 +43,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         setContentView(R.layout.activity_main);
-
         loadAudio();
         initRecyclerView();
     }
@@ -63,7 +62,6 @@ public class MainActivity extends AppCompatActivity {
                 public void onClick(View view, int index) {
                     playAudio(index);
                     Intent intent = new Intent(MainActivity.this, TransportActivity.class);
-//                    intent.putExtra("mediaPlayer", (Parcelable) player);
                     startActivity(intent);
                 }
             }));
@@ -136,8 +134,6 @@ public class MainActivity extends AppCompatActivity {
             MediaPlayerService.LocalBinder binder = (MediaPlayerService.LocalBinder) service;
             player = binder.getService();
             serviceBound = true;
-
-//            Toast.makeText(MainActivity.this, "Service Bound", Toast.LENGTH_SHORT).show();
         }
 
         @Override

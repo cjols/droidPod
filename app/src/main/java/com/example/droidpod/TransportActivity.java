@@ -62,6 +62,12 @@ public class TransportActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unbindService(mConnection);
+    }
+
+    @Override
     protected void onStart() {
         super.onStart();
         if (!mBound) {
@@ -128,7 +134,6 @@ public class TransportActivity extends AppCompatActivity {
         title.setText(player.activeAudio.getTitle());
         artist.setText(player.activeAudio.getArtist());
         album.setText(player.activeAudio.getAlbum());
-//        albumArtImg.setImageBitmap(MediaPlayerService.getAlbumArt(this, player.activeAudio.getAlbumId()));
         endTime.setText(player.getEndTime());
         seekBar.setMax(player.getEndVal());
 
@@ -147,13 +152,11 @@ public class TransportActivity extends AppCompatActivity {
     public void onPrevButtonClick(View v) {
         player.transportControls.skipToPrevious();
         playPauseBtn.setImageResource(R.drawable.pause);
-//        setMetadata();
     }
 
     public void onNextButtonClick(View v) {
         player.transportControls.skipToNext();
         playPauseBtn.setImageResource(R.drawable.pause);
-//        setMetadata();
     }
 
     public void onPlayPauseButtonClick(View v) {

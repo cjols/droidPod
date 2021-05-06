@@ -52,7 +52,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     protected ArrayList<Audio> audioList;
     protected int audioIndex = -1;
     protected Audio activeAudio;
-    private Bitmap albumArt;
 
     // phone vars
     private boolean onGoingCall = false;
@@ -71,7 +70,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     protected MediaControllerCompat.TransportControls transportControls;
 
     //AudioPlayer notification ID
-    private static final int NOTIFICATION_ID = 001;
+    private static final int NOTIFICATION_ID = 1;
     private static final String CHANNEL_ID = "Transport Controller";
 
     //Playback Status
@@ -312,7 +311,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
      * updates shown metadata to that of the currently playing track
      */
     private void updateMetaData() {
-        albumArt = getAlbumArt(this, activeAudio.getAlbumId());
+        Bitmap albumArt = getAlbumArt(this, activeAudio.getAlbumId());
 
         // Update the current metadata
         mediaSession.setMetadata(new MediaMetadataCompat.Builder()
@@ -363,14 +362,27 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         }
     }
 
+    /**
+     * gets playback time of the current song
+     * @return String of the song position
+     */
     public String getCurrentTime() {
         return timeToString(mediaPlayer.getCurrentPosition());
     }
 
+    /**
+     * gets duration of the current song
+     * @return String of the song length
+     */
     public String getEndTime() {
         return timeToString(mediaPlayer.getDuration());
     }
 
+    /**
+     * Convert time in int to a string with XX:XX format
+     * @param time ms time toString
+     * @return String conversion of the raw int data
+     */
     public String timeToString(int time) {
         int minutes = time / 60000;
         int seconds = (time % 60000) / 1000;
@@ -379,14 +391,26 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         return minutes + ":" + seconds;
     }
 
+    /**
+     * gets current position of the playback
+     * @return mediaPlayer.getCurrentPosition();
+     */
     public int getCurrentVal() {
         return mediaPlayer.getCurrentPosition();
     }
 
+    /**
+     * gets duration of the current song
+     * @return mediaPlayer.getDuration();
+     */
     public int getEndVal() {
         return mediaPlayer.getDuration();
     }
 
+    /**
+     * Move playback position
+     * @param position target length to move playback to in ms
+     */
     public void seekTo(int position) {
         mediaPlayer.seekTo(position);
     }
@@ -429,8 +453,14 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                 .notify(NOTIFICATION_ID, notificationBuilder.build());
     }
 
+
+    /**
+     * Get album art of a particular album.
+     * @param context context
+     * @param album_id ID of the album to retrieve album art
+     * @return album art bitmap
+     */
     public static Bitmap getAlbumArt(Context context, Long album_id) {
-//        Long album_id = activeAudio.getAlbumId();
         Bitmap albumArtBitMap = null;
         BitmapFactory.Options options = new BitmapFactory.Options();
         try {
@@ -446,8 +476,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                 pfd = null;
                 fd = null;
             }
-        } catch (Error | Exception ignored) {
-        }
+        } catch (Error | Exception ignored) { }
 
         return albumArtBitMap;
     }
@@ -779,6 +808,9 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                 PhoneStateListener.LISTEN_CALL_STATE);
     }
 
+    /**
+     * Invoked to create notification channel
+     */
     private void createNotificationChannel() {
         CharSequence name = getString(R.string.channel_name);
         String description = getString(R.string.channel_description);
@@ -792,6 +824,10 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         notificationManager.createNotificationChannel(channel);
     }
 
+    /**
+     * Set resume position
+     * @param pos position of track to resume in ms
+     */
     public void setResumePosition(int pos) {
         resumePosition = pos;
     }
