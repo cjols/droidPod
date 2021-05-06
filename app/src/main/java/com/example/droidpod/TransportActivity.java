@@ -40,16 +40,15 @@ public class TransportActivity extends AppCompatActivity {
     final Runnable r = new Runnable() {
         public void run() {
             handler.postDelayed(this, 1000);
-            try {
-                if (player.mStatus == PlaybackStatus.PLAYING)
-                    updateTime();
-                if (curProg >= player.getEndVal())
-                    player.transportControls.skipToNext();
-                if (player.activeAudio.getTitle() != title.getText())
-                    setMetadata();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            if (player.mStatus == PlaybackStatus.PLAYING) {
+                updateTime();
+                playPauseBtn.setImageResource(R.drawable.pause);
+            } else
+                playPauseBtn.setImageResource(R.drawable.play);
+            if (curProg >= player.getEndVal())
+                player.transportControls.skipToNext();
+            if (player.activeAudio.getTitle() != title.getText())
+                setMetadata();
         }
     };
 
@@ -114,7 +113,7 @@ public class TransportActivity extends AppCompatActivity {
         });
     }
 
-    private ServiceConnection mConnection = new ServiceConnection() {
+    private final ServiceConnection mConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             MediaPlayerService.LocalBinder binder = (MediaPlayerService.LocalBinder) service;
@@ -143,7 +142,7 @@ public class TransportActivity extends AppCompatActivity {
                 .into(albumArtImg);
     }
 
-    private void updateTime() throws InterruptedException {
+    private void updateTime() {
             curTime.setText(player.getCurrentTime());
             curProg = player.getCurrentVal();
             seekBar.setProgress(curProg);
@@ -170,7 +169,7 @@ public class TransportActivity extends AppCompatActivity {
         }
     }
 
-    private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
+    private final BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             try {
